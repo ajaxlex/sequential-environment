@@ -94,25 +94,11 @@ function evaluate() {
 
 function updateParticles() {
   for ( var i=0; i<particles.length; i++ ){
-	particles[i].position += particles[i].vel;
-
-	// recycle particles
-
-	if ( particles[i].method == BRIGHTEN_S || particles[i].method == DARKEN_S ) {
-		if ( particles[i].position > lookup[particles[i].scale].environmentLength-1 ) {
-			particles[i] = getRandParticle();
-		}
-	} else if ( particles[i].method == BRIGHTEN || particles[i].method == DARKEN || particles[i].method == SWEEP ) {
-		if ( particles[i].position > environmentLength ) {
-			particles[i] = getRandParticle();
-		}
-	}
-
+		particles[i].update();
   }
 }
 
 function evaluateEnvironment() {
-
 	// fill particle list
 	if ( particles.length < particleCount ) {
 		particles.push( getRandParticle() );
@@ -123,21 +109,12 @@ function draw() {
   if ( runState == "open" ) {
 
 		// Initialize
-		for ( var i=0; i<pixels.length; i++ ) {
-			pixels[i].red = 20;
-			pixels[i].green = 20;
-			pixels[i].blue = 40;
-		}
-
+		initAllPixels( 20, 20, 40 );
 
 	  // Compose
-	  for ( var i=0; i<particles.length; i++ ){
-			particles[i].method();
-	  }
-
+	  for ( var i=0; i<particles.length; i++ ){ particles[i].method(); }
 
 	  // Render
-
 	//	try {
 	    for ( var i=0; i<pixels.length; i++ ){
 	      fc.setPixel( pixels.length-i, pixels[i].red, pixels[i].green, pixels[i].blue );
@@ -155,30 +132,69 @@ function draw() {
 }
 
 
-function methodBrighten() {
-	var dest = coordT[particles[i].position];
 
-	pixels[dest].red += particles[i].color.r;
-	pixels[dest].green += particles[i].color.g;
-	pixels[dest].blue += particles[i].color.b;
+
+// update methods
+
+function update_Discrete() {
+	particles[i].position += particles[i].vel;
+
+	// recycle rules
+	if ( this.position > environmentLength ) {
+		this = getRandParticle();
+	}
 }
 
-function methodDarken() {
-	var dest = coordT[particles[i].position];
+function update_Smooth() {
+	particles[i].position += particles[i].vel;
 
-	pixels[dest].red -= particles[i].color.r;
-	pixels[dest].green -= particles[i].color.g;
-	pixels[dest].blue -= particles[i].color.b;
+	// recycle rules
+	if ( this.position > lookup[this.scale].environmentLength-1 ) {
+		this = getRandParticle();
+	}
 }
 
-function methodBrightenSmooth() {
-	var pcalc = lookup[particles[i].scale].positions[particles[i].position];
+function update_Glower() {
+	particles[i].position += particles[i].vel;
+
+	// recycle rules
+	if ( this.position > lookup[this.scale].environmentLength-1 ) {
+		this = getRandParticle();
+	}
+}
+
+
+
+
+
+
+
+// draw methods
+
+function method_Brighten() {
+	var dest = coordT[this.position];
+
+	pixels[dest].red += this.color.r;
+	pixels[dest].green += this.color.g;
+	pixels[dest].blue += this.color.b;
+}
+
+function method_Darken() {
+	var dest = coordT[this.position];
+
+	pixels[dest].red -= this.color.r;
+	pixels[dest].green -= this.color.g;
+	pixels[dest].blue -= this.color.b;
+}
+
+function method_BrightenSmooth() {
+	var pcalc = lookup[this.scale].positions[this.position];
 	methodValueSmooth( pcalc );
 }
 
-function methodDarkenSmooth() {
-	var pcalc = lookup[particles[i].scale].positions[particles[i].position];
-	if ( particles[i].method == DARKEN_S ) {
+function method_DarkenSmooth() {
+	var pcalc = lookup[this.scale].positions[this.position];
+	if ( this.method == DARKEN_S ) {
 		pcalc.wleft *= -1;
 		pcalc.wright *= -1;
 	}
@@ -186,18 +202,18 @@ function methodDarkenSmooth() {
 }
 
 function methodValueSmooth( pcalc ){
-	pixels[pcalc.left].red += particles[i].color.r * pcalc.wleft;
-	pixels[pcalc.left].green += particles[i].color.g * pcalc.wleft;
-	pixels[pcalc.left].blue += particles[i].color.b * pcalc.wleft;
+	pixels[pcalc.left].red += this.color.r * pcalc.wleft;
+	pixels[pcalc.left].green += this.color.g * pcalc.wleft;
+	pixels[pcalc.left].blue += this.color.b * pcalc.wleft;
 
-	pixels[pcalc.right].red += particles[i].color.r * pcalc.wright;
-	pixels[pcalc.right].green += particles[i].color.g * pcalc.wright;
-	pixels[pcalc.right].blue += particles[i].color.b * pcalc.wright;
+	pixels[pcalc.right].red += this.color.r * pcalc.wright;
+	pixels[pcalc.right].green += this.color.g * pcalc.wright;
+	pixels[pcalc.right].blue += this.color.b * pcalc.wright;
 }
 
 
-function methodSweep() {
-	var pcalc = lookup[particles[i].scale].positions[particles[i].position];
+function method_Sweep() {
+	var pcalc = lookup[this.scale].positions[this.position];
 
 	var taillen = 6;
 	var fraction = 1/taillen;
@@ -206,13 +222,13 @@ function methodSweep() {
 		try {
 		var tail = pcalc.right - t;
 	} catch ( err ) {
-		console.log( i + " | " + particles[i].position );
+		console.log( i + " | " + this.position );
 	}
 		if ( tail > 0 ) {
 			var factor = ( 6 - t ) * ( fraction );
-			pixels[tail].red += particles[i].color.r * factor;
-			pixels[tail].green += particles[i].color.g * factor;
-			pixels[tail].blue += particles[i].color.b * factor;
+			pixels[tail].red += this.color.r * factor;
+			pixels[tail].green += this.color.g * factor;
+			pixels[tail].blue += this.color.b * factor;
 		}
 	}
 	var frontedge = pcalc.right + 1;
@@ -227,33 +243,58 @@ function methodSweep() {
 
 
 
+
+
+
+
+function setPixel( i, r, g, b ) {
+	pixels[i].red = r;
+	pixels[i].green = g;
+	pixels[i].blue = b;
+}
+
+function initAllPixels( r, g, b ){
+	for ( var i=0; i<pixels.length; i++ ) {
+		pixels[i].red = r;
+		pixels[i].green = g;
+		pixels[i].blue = b;
+	}
+}
+
+
+
 function getRandParticle() {
 	var r = Math.random();
 
 	if ( r < .10 ) {
-		return getParticle( 4, 0, 1, methodBrightenSmooth, defaultScale, 10, 10, 85 );
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85 );
 	} else if ( r < .15 ) {
-		return getParticle( 3, 0, 1, methodSweep, defaultScale, 60, 10, 15 );
+		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15 );
 	} else {
-		return getParticle( 2, 0, 1, methodBrightenSmooth, defaultScale, 5, 5, 10 );
+		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10 );
 	}
 }
 
 function getParticle( v, p, r, g, b ) {
-	return getParticle( v, p, 1, methodBrighten, defaultScale, r, g, b );
+	return getParticle( v, p, 1, method_Brighten, update_Discrete, defaultScale, r, g, b );
 }
 
-function getParticle( v, p, i, m, s, r, g, b ) {
+function getParticle( v, p, i, m, u, s, r, g, b ) {
   var p = {
     'vel': v,
     'position': p,
     'intensity': i,
-	'method': m,
-	'scale': s,
+		'method': m,
+		'update': u
+		'scale': s,
     'color': { 'r': r, 'g': g, 'b': b }
   };
   return p;
 }
+
+
+
+
 
 
 
