@@ -1,0 +1,3 @@
+#!/bin/bash
+kill $(ps aux | grep 'lightrules.js' | awk '{print $2}')
+/opt/node/bin/node /home/pi/sequential-environment/lightrules.js
