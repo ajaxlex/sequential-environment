@@ -268,10 +268,10 @@ function getRandParticle() {
 
 	if ( r < .10 ) {
 		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85 );
-	} else if ( r < .15 ) {
-		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15 );
-	} else if ( r < .30 ) {
-		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95 );
+//	} else if ( r < .15 ) {
+//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15 );
+//	} else if ( r < .30 ) {
+//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95 );
 	} else if ( r < .50 ) {
 		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100 )
 	} else {
