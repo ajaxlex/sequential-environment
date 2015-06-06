@@ -21,9 +21,9 @@ var SWEEP = 300;
 
 
 var pixelLength = 300;
-var particleCount = 200;
+var particleCount = 400;
 
-var environmentLength = 2000;
+var environmentLength = 3000;
 
 var defaultScale = 7;
 
@@ -94,7 +94,7 @@ function evaluate() {
 
 function updateParticles() {
   for ( var i=0; i<particles.length; i++ ){
-		particles[i].update();
+		particles[i].update( i );
   }
 }
 
@@ -136,30 +136,30 @@ function draw() {
 
 // update methods
 
-function update_Discrete() {
-	particles[i].position += particles[i].vel;
+function update_Discrete( i ) {
+	this.position += this.vel;
 
 	// recycle rules
 	if ( this.position > environmentLength ) {
-		this = getRandParticle();
+		particles[i] = getRandParticle();
 	}
 }
 
-function update_Smooth() {
-	particles[i].position += particles[i].vel;
+function update_Smooth( i ) {
+	this.position += this.vel;
 
 	// recycle rules
 	if ( this.position > lookup[this.scale].environmentLength-1 ) {
-		this = getRandParticle();
+    particles[i] = getRandParticle();
 	}
 }
 
-function update_Glower() {
-	particles[i].position += particles[i].vel;
+function update_Glower( i ) {
+	this.position += this.vel;
 
 	// recycle rules
 	if ( this.position > lookup[this.scale].environmentLength-1 ) {
-		this = getRandParticle();
+    particles[i] = getRandParticle();
 	}
 }
 
@@ -189,7 +189,7 @@ function method_Darken() {
 
 function method_BrightenSmooth() {
 	var pcalc = lookup[this.scale].positions[this.position];
-	methodValueSmooth( pcalc );
+	methodValueSmooth( this, pcalc );
 }
 
 function method_DarkenSmooth() {
@@ -198,17 +198,17 @@ function method_DarkenSmooth() {
 		pcalc.wleft *= -1;
 		pcalc.wright *= -1;
 	}
-	methodValueSmooth( pcalc );
+	methodValueSmooth( this, pcalc );
 }
 
-function methodValueSmooth( pcalc ){
-	pixels[pcalc.left].red += this.color.r * pcalc.wleft;
-	pixels[pcalc.left].green += this.color.g * pcalc.wleft;
-	pixels[pcalc.left].blue += this.color.b * pcalc.wleft;
+function methodValueSmooth( tgt, pcalc ){
+	pixels[pcalc.left].red += tgt.color.r * pcalc.wleft;
+	pixels[pcalc.left].green += tgt.color.g * pcalc.wleft;
+	pixels[pcalc.left].blue += tgt.color.b * pcalc.wleft;
 
-	pixels[pcalc.right].red += this.color.r * pcalc.wright;
-	pixels[pcalc.right].green += this.color.g * pcalc.wright;
-	pixels[pcalc.right].blue += this.color.b * pcalc.wright;
+	pixels[pcalc.right].red += tgt.color.r * pcalc.wright;
+	pixels[pcalc.right].green += tgt.color.g * pcalc.wright;
+	pixels[pcalc.right].blue += tgt.color.b * pcalc.wright;
 }
 
 
@@ -270,6 +270,10 @@ function getRandParticle() {
 		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85 );
 	} else if ( r < .15 ) {
 		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15 );
+	} else if ( r < .30 ) {
+		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95 );
+	} else if ( r < .50 ) {
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100 )
 	} else {
 		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10 );
 	}
@@ -285,7 +289,7 @@ function getParticle( v, p, i, m, u, s, r, g, b ) {
     'position': p,
     'intensity': i,
 		'method': m,
-		'update': u
+		'update': u,
 		'scale': s,
     'color': { 'r': r, 'g': g, 'b': b }
   };
