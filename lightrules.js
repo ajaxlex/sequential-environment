@@ -133,7 +133,7 @@ function evaluateEnvironment() {
 	//			if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
 	//				particles.push( getProximateParticle( s, dist_v[s] ));
 	//			}
-		}		
+		}
 		console.log( out );
 	}
 
@@ -299,7 +299,7 @@ function initAllPixels( r, g, b ){
 
 
 function getProximateParticle( s, dist ) {
-	var pos = s * ( pixelLength / sensorCount );
+	var pos = Math.floor( s * ( pixelLength / sensorCount ) );
 	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_Smooth, defaultScale, 85, 75, 15, 20 );
 }
 
