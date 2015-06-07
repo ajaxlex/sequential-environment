@@ -50,6 +50,8 @@ function initialize() {
 	serialport = new SerialPort(portName , { baudrate : 115200, parser: sp.parsers.readline("|") }, false);
 	openPort();
 
+	for ( var i=0; i<8; i++ ) { dist_v[i] = 0; }
+
 	// Init coord lookup
 	var coordRatio = ( ( pixelLength ) / environmentLength );
 	for ( var t=0; t<environmentLength+1; t++ ){ coordT[t] = Math.floor( t * coordRatio ); }
@@ -102,6 +104,13 @@ function evaluateEnvironment() {
 	// fill particle list
 	if ( particles.length < particleCount ) {
 		particles.push( getRandParticle() );
+	}
+
+	for ( var s=0; s < 8; s++ ) {
+
+			if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
+				particles.push( getProximateParticle( s, dist_v[s] );
+			}
 	}
 }
 
@@ -262,6 +271,10 @@ function initAllPixels( r, g, b ){
 }
 
 
+function getProximateParticle( s, dist ) {
+	var pos = s * ( pixelLength / 8 );
+	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_Smooth, defaultScale, 85, 75, 15 );
+}
 
 function getRandParticle() {
 	var r = Math.random();
