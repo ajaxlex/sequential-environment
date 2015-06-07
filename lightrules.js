@@ -20,6 +20,7 @@ var SWEEP = 300;
 
 var SENSORTEST = false;
 var POSITIONTEST = false;
+var USESENSOR = true;
 
 var sensorCount = 8;
 
@@ -51,13 +52,13 @@ setInterval(evaluate, 30);
 function initialize() {
 
 	if ( process.argv.length > 2 ) {
-			if ( process.argv[2] == "sensorTest" ) {
-				SENSORTEST = true;
-			} else if ( process.argv[2] == "positionTest" ) {
-				POSITIONTEST = true;
+			for ( var i=2; i<process.argv.length; i++ ) {
+				var current = process.argv[i];
+				if ( current == "sensorTest" ) { SENSORTEST = true; }
+				else if ( current == "positionTest" ) { POSITIONTEST = true; }
+				else if ( current == "noSensors") { USESENSOR = false; }
 			}
 	}
-
 
 	serialport = new SerialPort(portName , { baudrate : 115200, parser: sp.parsers.readline("|") }, false);
 	openPort();
@@ -118,21 +119,19 @@ function evaluateEnvironment() {
 		particles.push( getRandParticle() );
 	}
 
-	for ( var s=0; s < sensorCount; s++ ) {
-			if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
-//				particles.push( getProximateParticle( s, dist_v[s] ));
-			}
+	if ( USESENSOR ) {
+		for ( var s=0; s < sensorCount; s++ ) {
+				if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
+					particles.push( getProximateParticle( s, dist_v[s] ));
+				}
+		}
 	}
 
 	if ( POSITIONTEST ) {
 		var out = "";
 		for ( var s=0; s < sensorCount; s++ ) {
 			var p = getProximateParticle( s, dist_v[s] );
-
 			out += s + "=" + dist_v[s] + "-" + p.position + "  :  ";
-	//			if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
-	//				particles.push( getProximateParticle( s, dist_v[s] ));
-	//			}
 		}
 		console.log( out );
 	}
