@@ -18,7 +18,9 @@ var DARKEN_S = 201;
 
 var SWEEP = 300;
 
+var SENSORTEST = false;
 
+var sensorCount = 8;
 
 var pixelLength = 300;
 var particleCount = 400;
@@ -45,8 +47,15 @@ var timerIdle = true;
 initialize();
 setInterval(evaluate, 30);
 
-
 function initialize() {
+
+	if ( process.argv.length > 2 ) {
+			if ( process.argv[2] == "sensorTest" ) {
+				SENSORTEST = true;
+			}
+	}
+
+
 	serialport = new SerialPort(portName , { baudrate : 115200, parser: sp.parsers.readline("|") }, false);
 	openPort();
 
@@ -106,7 +115,7 @@ function evaluateEnvironment() {
 		particles.push( getRandParticle() );
 	}
 
-	for ( var s=0; s < 8; s++ ) {
+	for ( var s=0; s < sensorCount; s++ ) {
 
 			if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
 				particles.push( getProximateParticle( s, dist_v[s] ));
@@ -272,31 +281,31 @@ function initAllPixels( r, g, b ){
 
 
 function getProximateParticle( s, dist ) {
-	var pos = s * ( pixelLength / 8 );
-	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_Smooth, defaultScale, 85, 75, 15 );
+	var pos = s * ( pixelLength / sensorCount );
+	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_Smooth, defaultScale, 85, 75, 15, 20 );
 }
 
 function getRandParticle() {
 	var r = Math.random();
 
 	if ( r < .10 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85 );
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 0 );
 //	} else if ( r < .15 ) {
-//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15 );
+//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15, 0 );
 //	} else if ( r < .30 ) {
-//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95 );
+//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95, 0 );
 	} else if ( r < .50 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100 )
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 0 )
 	} else {
-		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10 );
+		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10, 0 );
 	}
 }
 
 function getParticle( v, p, r, g, b ) {
-	return getParticle( v, p, 1, method_Brighten, update_Discrete, defaultScale, r, g, b );
+	return getParticle( v, p, 1, method_Brighten, update_Discrete, defaultScale, r, g, b, 0 );
 }
 
-function getParticle( v, p, i, m, u, s, r, g, b ) {
+function getParticle( v, p, i, m, u, s, r, g, b, l ) {
   var p = {
     'vel': v,
     'position': p,
@@ -304,7 +313,8 @@ function getParticle( v, p, i, m, u, s, r, g, b ) {
 		'method': m,
 		'update': u,
 		'scale': s,
-    'color': { 'r': r, 'g': g, 'b': b }
+    'color': { 'r': r, 'g': g, 'b': b },
+		'life': l
   };
   return p;
 }
@@ -346,7 +356,11 @@ function openPort() {
 					//console.log('rcv: ' + c);
 	    		dist_v = JSON.parse(c);
 					//dist_v = {};
-	    		console.log(' 4: ' + dist_v[4] );
+					if ( SENSORTEST ) {
+						for ( var s=0; s < sensorCount; s++ ) {
+	    				console.log( s + ' : ' + dist_v[s] );
+						}
+					}
 				} catch( err ){
 					console.log('parse err ' + err);
 				}
