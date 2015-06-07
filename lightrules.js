@@ -355,10 +355,13 @@ function openPort() {
 					//console.log('rcv: ' + c);
 	    		dist_v = JSON.parse(c);
 					//dist_v = {};
+
 					if ( SENSORTEST ) {
+						var out = "";
 						for ( var s=0; s < sensorCount; s++ ) {
-	    				console.log( s + ' : ' + dist_v[s] );
+							out += s + '=' + dist_v[s] + '  :  ';
 						}
+						console.log( out );
 					}
 				} catch( err ){
 					console.log('parse err ' + err);
