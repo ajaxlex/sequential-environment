@@ -109,7 +109,7 @@ function evaluateEnvironment() {
 	for ( var s=0; s < 8; s++ ) {
 
 			if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
-				particles.push( getProximateParticle( s, dist_v[s] );
+				particles.push( getProximateParticle( s, dist_v[s] ));
 			}
 	}
 }
