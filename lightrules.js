@@ -346,7 +346,7 @@ function openPort() {
 					//console.log('rcv: ' + c);
 	    		dist_v = JSON.parse(c);
 					//dist_v = {};
-	    		//console.log(' 12: ' + dist_v[12] );
+	    		console.log(' 4: ' + dist_v[4] );
 				} catch( err ){
 					console.log('parse err ' + err);
 				}
