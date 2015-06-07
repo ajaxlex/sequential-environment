@@ -199,7 +199,14 @@ function update_Glower( i ) {
 }
 
 
+function update_React( i ) {
+	this.position += this.vel;
 
+	// recycle rules
+	if ( this.position > lookup[this.scale].environmentLength-1 ) {
+    particles[i] = getRandParticle();
+	}
+}
 
 
 
@@ -298,8 +305,8 @@ function initAllPixels( r, g, b ){
 
 
 function getProximateParticle( s, dist ) {
-	var pos = Math.floor( s * ( pixelLength / sensorCount ) );
-	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_Smooth, defaultScale, 85, 75, 15, 20 );
+	var pos = Math.floor( s * ( environmentLength / sensorCount ) );
+	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, 20 );
 }
 
 function getRandParticle() {
