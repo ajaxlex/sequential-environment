@@ -111,6 +111,11 @@ function updateParticles() {
   for ( var i=0; i<particles.length; i++ ){
 		particles[i].update( i );
   }
+	for ( var i=particles.length - 1; i >= 0; i-- ){
+		if ( particles[i].life < 1 ) {
+			particles.splice(i,1);
+		}
+	}
 }
 
 function evaluateEnvironment() {
@@ -171,7 +176,7 @@ function update_Discrete( i ) {
 
 	// recycle rules
 	if ( this.position > environmentLength ) {
-		deleteParticle[i];
+		this.life = 0;
 	}
 }
 
@@ -180,7 +185,7 @@ function update_Smooth( i ) {
 
 	// recycle rules
 	if ( this.position > lookup[this.scale].environmentLength-1 ) {
-		deleteParticle[i];
+		this.life = 0;
 	}
 }
 
@@ -189,7 +194,7 @@ function update_Glower( i ) {
 
 	// recycle rules
 	if ( this.position > lookup[this.scale].environmentLength-1 ) {
-		deleteParticle[i];
+		this.life = 0;
 	}
 }
 
@@ -199,7 +204,7 @@ function update_React( i ) {
 
 	// recycle rules
 	if ( this.position < 1 || this.position > lookup[this.scale].environmentLength-1 || this.life < 1 ) {
-		deleteParticle[i];
+		this.life = 0;
 	}
 }
 
