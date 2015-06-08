@@ -230,8 +230,16 @@ function method_Darken() {
 }
 
 function method_BrightenSmooth() {
-	var pcalc = lookup[this.scale].positions[this.position];
-	methodValueSmooth( this, pcalc );
+	var pcalc;
+	try {
+		pcalc = lookup[this.scale].positions[this.position];
+		methodValueSmooth( this, pcalc );
+	} catch( err ) {
+			console.log('fc write err: ' + err);
+			console.log( this.position );
+			process.exit();
+	//		runState = "fc write err";
+		}
 }
 
 function method_DarkenSmooth() {
