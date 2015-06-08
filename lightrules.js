@@ -116,7 +116,7 @@ function updateParticles() {
 function evaluateEnvironment() {
 	// fill particle list
 	if ( particles.length < particleCount ) {
-		particles.push( getRandParticle() );
+		addParticle( getRandParticle() );
 	}
 
 	if ( USESENSOR ) {
@@ -135,8 +135,6 @@ function evaluateEnvironment() {
 		}
 		console.log( out );
 	}
-
-
 
 }
 
@@ -162,11 +160,8 @@ function draw() {
 
   } else {
     // display runstate graphics
-
   }
 }
-
-
 
 
 // update methods
@@ -176,7 +171,7 @@ function update_Discrete( i ) {
 
 	// recycle rules
 	if ( this.position > environmentLength ) {
-		particles[i] = getRandParticle();
+		deleteParticle[i];
 	}
 }
 
@@ -185,7 +180,7 @@ function update_Smooth( i ) {
 
 	// recycle rules
 	if ( this.position > lookup[this.scale].environmentLength-1 ) {
-    particles[i] = getRandParticle();
+		deleteParticle[i];
 	}
 }
 
@@ -194,17 +189,17 @@ function update_Glower( i ) {
 
 	// recycle rules
 	if ( this.position > lookup[this.scale].environmentLength-1 ) {
-    particles[i] = getRandParticle();
+		deleteParticle[i];
 	}
 }
 
-
 function update_React( i ) {
 	this.position += this.vel;
+	this.life--;
 
 	// recycle rules
-	if ( this.position > lookup[this.scale].environmentLength-1 ) {
-    particles[i] = getRandParticle();
+	if ( this.position < 1 || this.position > lookup[this.scale].environmentLength-1 || life < 1 ) {
+		deleteParticle[i];
 	}
 }
 
@@ -284,11 +279,6 @@ function method_Sweep() {
 
 
 
-
-
-
-
-
 function setPixel( i, r, g, b ) {
 	pixels[i].red = r;
 	pixels[i].green = g;
@@ -303,6 +293,14 @@ function initAllPixels( r, g, b ){
 	}
 }
 
+function addParticle( p ) {
+	particles.push( p );
+}
+
+function deleteParticle( i ) {
+	particles[i] = null;
+	particles.splice( i, 1 );
+}
 
 function getProximateParticle( s, dist ) {
 	var pos = Math.floor( s * ( environmentLength / sensorCount ) );
@@ -369,7 +367,7 @@ function openPort() {
     if ( error ) {
       console.log('open err: ' + error);
 //			runState = "conn open err";
-	runState = "open";
+			runState = "open";
     } else {
       console.log('open');
 			runState = "open";
