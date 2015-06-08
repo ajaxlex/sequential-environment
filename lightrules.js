@@ -92,8 +92,8 @@ function initialize() {
 
 function evaluate() {
 	if ( runState == "open") {
+		evaluateEnvironment();
   	updateParticles();
-  	evaluateEnvironment();
   	draw();
 	} else {
 		if ( timerIdle ) {
@@ -308,11 +308,6 @@ function initAllPixels( r, g, b ){
 
 function addParticle( p ) {
 	particles.push( p );
-}
-
-function deleteParticle( i ) {
-	particles[i] = null;
-	particles.splice( i, 1 );
 }
 
 function getProximateParticle( s, dist ) {
