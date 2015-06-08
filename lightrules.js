@@ -198,7 +198,7 @@ function update_React( i ) {
 	this.life--;
 
 	// recycle rules
-	if ( this.position < 1 || this.position > lookup[this.scale].environmentLength-1 || life < 1 ) {
+	if ( this.position < 1 || this.position > lookup[this.scale].environmentLength-1 || this.life < 1 ) {
 		deleteParticle[i];
 	}
 }
