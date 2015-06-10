@@ -211,7 +211,7 @@ function update_Glower( i ) {
 function update_React( i ) {
 	this.position += this.vel;
 	this.life--;
-	this.intensity -= .1;
+	this.intensity -= .01;
 	if ( this.intensity < 0 ) { this.intensity = 0; }
 
 	// recycle rules
