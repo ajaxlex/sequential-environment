@@ -27,17 +27,16 @@ var sensorCount = 8;
 var pixelLength = 300;
 var particleCount = 400;
 
-var environmentLength = 3000;
+var defaultScale = 13;
 
-var defaultScale = 7;
+var environmentLength = defaultScale * pixelLength;
+
 
 var pixels = [];
 var particles = [];
 
-var lookup = [];
-
+var lookup = {};
 var coordT = [];
-
 var dist_v = [];
 
 var timerIdle = true;
@@ -66,14 +65,14 @@ function initialize() {
 	for ( var i=0; i<8; i++ ) { dist_v[i] = 0; }
 
 	// Init coord lookup
-	var coordRatio = ( ( pixelLength ) / environmentLength );
+	var coordRatio = ( pixelLength  / environmentLength );
 	for ( var t=0; t<environmentLength+1; t++ ){ coordT[t] = Math.floor( t * coordRatio ); }
 
 	// Init scaling lookup
 
-	lookup[defaultScale] = { 'environmentLength': defaultScale * pixelLength, 'positions': [] };
+	lookup = { 'environmentLength': defaultScale * pixelLength, 'positions': [] };
 
-	for ( var p=0; p < lookup[defaultScale].environmentLength; p++ ){
+	for ( var p=0; p < lookup.environmentLength; p++ ){
 		var div = p / defaultScale;
 		var calc = {
 			'left': Math.floor( div ),
@@ -82,11 +81,22 @@ function initialize() {
 			'wright': ( div ) % 1
 		};
 
-		lookup[defaultScale].positions.push( calc );
+		lookup.positions.push( calc );
 	}
 
 	// Init pixel array
 	for ( var i=0; i<pixelLength + 3; i++ ) { pixels.push({ 'r':0, 'g':0, 'b':0 }); }
+
+
+	/*
+	setInterval( function() {
+		for ( var i=0; i < 8; i++ ) {
+			var p = getProximateParticle( i, 40 );
+			//p.position = 20-i;
+			addParticle( p );
+		}
+	}, 1000);
+	*/
 }
 
 
@@ -175,7 +185,7 @@ function update_Discrete( i ) {
 	this.position += this.vel;
 
 	// recycle rules
-	if ( this.position > environmentLength ) {
+	if ( this.position > environmentLength-1 ) {
 		this.life = 0;
 	}
 }
@@ -184,7 +194,7 @@ function update_Smooth( i ) {
 	this.position += this.vel;
 
 	// recycle rules
-	if ( this.position > lookup[this.scale].environmentLength-1 ) {
+	if ( this.position > environmentLength-1 ) {
 		this.life = 0;
 	}
 }
@@ -193,7 +203,7 @@ function update_Glower( i ) {
 	this.position += this.vel;
 
 	// recycle rules
-	if ( this.position > lookup[this.scale].environmentLength-1 ) {
+	if ( this.position > environmentLength-1 ) {
 		this.life = 0;
 	}
 }
@@ -203,7 +213,7 @@ function update_React( i ) {
 	this.life--;
 
 	// recycle rules
-	if ( this.position < 1 || this.position > lookup[this.scale].environmentLength-1 || this.life < 1 ) {
+	if ( this.position < 1 || this.position > environmentLength-1 || this.life < 1 ) {
 		this.life = 0;
 	}
 }
@@ -232,10 +242,10 @@ function method_Darken() {
 function method_BrightenSmooth() {
 	var pcalc;
 	try {
-		pcalc = lookup[this.scale].positions[this.position];
+		pcalc = lookup.positions[this.position];
 		methodValueSmooth( this, pcalc );
 	} catch( err ) {
-			console.log('fc write err: ' + err);
+			console.log('Brighten Smooth: ' + err);
 			console.log( this.position );
 			process.exit();
 	//		runState = "fc write err";
@@ -243,7 +253,7 @@ function method_BrightenSmooth() {
 }
 
 function method_DarkenSmooth() {
-	var pcalc = lookup[this.scale].positions[this.position];
+	var pcalc = lookup.positions[this.position];
 	if ( this.method == DARKEN_S ) {
 		pcalc.wleft *= -1;
 		pcalc.wright *= -1;
@@ -263,7 +273,7 @@ function methodValueSmooth( tgt, pcalc ){
 
 
 function method_Sweep() {
-	var pcalc = lookup[this.scale].positions[this.position];
+	var pcalc = lookup.positions[this.position];
 
 	var taillen = 6;
 	var fraction = 1/taillen;
@@ -312,27 +322,27 @@ function addParticle( p ) {
 
 function getProximateParticle( s, dist ) {
 	var pos = Math.floor( s * ( environmentLength / sensorCount ) );
-	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, 20 );
+	return getParticle( 0, pos, 2,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, 20 );
 }
 
 function getRandParticle() {
 	var r = Math.random();
 
 	if ( r < .10 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 0 );
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 1 );
 //	} else if ( r < .15 ) {
-//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15, 0 );
+//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15, 1 );
 //	} else if ( r < .30 ) {
-//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95, 0 );
+//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95, 1 );
 	} else if ( r < .50 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 0 )
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 1 )
 	} else {
-		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10, 0 );
+		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10, 1 );
 	}
 }
 
 function getParticle( v, p, r, g, b ) {
-	return getParticle( v, p, 1, method_Brighten, update_Discrete, defaultScale, r, g, b, 0 );
+	return getParticle( v, p, 1, method_Brighten, update_Discrete, defaultScale, r, g, b, 1 );
 }
 
 function getParticle( v, p, i, m, u, s, r, g, b, l ) {
