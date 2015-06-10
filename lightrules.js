@@ -211,6 +211,8 @@ function update_Glower( i ) {
 function update_React( i ) {
 	this.position += this.vel;
 	this.life--;
+	this.intensity -= .1;
+	if ( this.intensity < 0 ) { this.intensity = 0; }
 
 	// recycle rules
 	if ( this.position < 1 || this.position > environmentLength-1 || this.life < 1 ) {
@@ -226,17 +228,17 @@ function update_React( i ) {
 function method_Brighten() {
 	var dest = coordT[this.position];
 
-	pixels[dest].red += this.color.r;
-	pixels[dest].green += this.color.g;
-	pixels[dest].blue += this.color.b;
+	pixels[dest].red += this.color.r * this.intensity;
+	pixels[dest].green += this.color.g * this.intensity;
+	pixels[dest].blue += this.color.b * this.intensity;
 }
 
 function method_Darken() {
 	var dest = coordT[this.position];
 
-	pixels[dest].red -= this.color.r;
-	pixels[dest].green -= this.color.g;
-	pixels[dest].blue -= this.color.b;
+	pixels[dest].red -= this.color.r * this.intensity;
+	pixels[dest].green -= this.color.g * this.intensity;
+	pixels[dest].blue -= this.color.b * this.intensity;
 }
 
 function method_BrightenSmooth() {
@@ -262,13 +264,13 @@ function method_DarkenSmooth() {
 }
 
 function methodValueSmooth( tgt, pcalc ){
-	pixels[pcalc.left].red += tgt.color.r * pcalc.wleft;
-	pixels[pcalc.left].green += tgt.color.g * pcalc.wleft;
-	pixels[pcalc.left].blue += tgt.color.b * pcalc.wleft;
+	pixels[pcalc.left].red += tgt.color.r * pcalc.wleft * tgt.intensity;
+	pixels[pcalc.left].green += tgt.color.g * pcalc.wleft * tgt.intensity;
+	pixels[pcalc.left].blue += tgt.color.b * pcalc.wleft * tgt.intensity;
 
-	pixels[pcalc.right].red += tgt.color.r * pcalc.wright;
-	pixels[pcalc.right].green += tgt.color.g * pcalc.wright;
-	pixels[pcalc.right].blue += tgt.color.b * pcalc.wright;
+	pixels[pcalc.right].red += tgt.color.r * pcalc.wright * tgt.intensity;
+	pixels[pcalc.right].green += tgt.color.g * pcalc.wright * tgt.intensity;
+	pixels[pcalc.right].blue += tgt.color.b * pcalc.wright * tgt.intensity;
 }
 
 
@@ -322,7 +324,7 @@ function addParticle( p ) {
 
 function getProximateParticle( s, dist ) {
 	var pos = Math.floor( ( s + 1 ) * ( environmentLength / sensorCount ) );
-	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, 20 );
+	return getParticle( 4, pos, 1,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, 20 );
 }
 
 function getRandParticle() {
