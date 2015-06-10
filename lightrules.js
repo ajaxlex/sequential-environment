@@ -321,7 +321,7 @@ function addParticle( p ) {
 }
 
 function getProximateParticle( s, dist ) {
-	var pos = Math.floor( s * ( environmentLength / sensorCount ) );
+	var pos = Math.floor( ( s + 1 ) * ( environmentLength / sensorCount ) );
 	return getParticle( 4, pos, 2,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, 20 );
 }
 
