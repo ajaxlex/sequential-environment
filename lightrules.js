@@ -93,9 +93,9 @@ function initialize() {
 
 
 
-	setInterval( function() {
-		dist_recent = dist_v.slice();
-	}, 2000);
+//	setInterval( function() {
+//		dist_recent = dist_v.slice();
+//	}, 2000);
 
 
 
