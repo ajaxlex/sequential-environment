@@ -136,7 +136,7 @@ function evaluateEnvironment() {
 
 	if ( USESENSOR ) {
 		for ( var s=0; s < sensorCount; s++ ) {
-				if ( dist_v[s] > 0 && dist_v[s] < 50 ) {
+				if ( dist_v[s] > 0 && dist_v[s] < 150 ) {
 					particles.push( getProximateParticle( s, dist_v[s] ));
 				}
 		}
@@ -324,7 +324,9 @@ function addParticle( p ) {
 
 function getProximateParticle( s, dist ) {
 	var pos = Math.floor( ( s + 1 ) * ( environmentLength / sensorCount ) );
-	return getParticle( 4, pos, 1,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, 100 );
+	var life = 150 - dist;
+	
+	return getParticle( 4, pos, 1,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, life );
 }
 
 function getRandParticle() {
