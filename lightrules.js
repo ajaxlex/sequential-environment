@@ -403,10 +403,10 @@ function openPort() {
 
 	    		dist_v = JSON.parse(c);
 
-					if ( firstCapture ){
-						dist_back = dist_v.slice();
-						firstCapture = false;
-					}
+//					if ( firstCapture ){
+//						dist_back = dist_v.slice();
+//						firstCapture = false;
+//					}
 
 					if ( SENSORTEST ) {
 						var out = "";
