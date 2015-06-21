@@ -336,15 +336,15 @@ function getRandParticle() {
 	var r = Math.random();
 
 	if ( r < .10 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 1 );
+		return getParticle( 5, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 1 );
 //	} else if ( r < .15 ) {
 //		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15, 1 );
-//	} else if ( r < .30 ) {
-//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95, 1 );
+	} else if ( r < .30 ) {
+		return getParticle( 3, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 50, 10, 20, 1 );
 	} else if ( r < .50 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 1 )
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 1 );
 	} else {
-		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10, 1 );
+		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 20, 1 );
 	}
 }
 
