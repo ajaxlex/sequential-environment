@@ -4,11 +4,19 @@ var OPC = new require('./opc')
 
 var fc = new OPC('localhost', 7890);
 
-var sp = require('serialport');
-var SerialPort = require('serialport').SerialPort;
-var portName = "/dev/ttyArduino";
+var SENSORTEST = false;
+var POSITIONTEST = true;
+var USESENSOR = true;
 
-var runState = "down";
+var sensor = {};
+
+if ( USESENSOR ) {
+	sensor = new ultrasonicSensors();
+} else {
+	sensor = new testSensors();
+}
+
+var context = { runState: "down" };
 
 var BRIGHTEN = 100;
 var DARKEN = 101;
@@ -18,9 +26,6 @@ var DARKEN_S = 201;
 
 var SWEEP = 300;
 
-var SENSORTEST = false;
-var POSITIONTEST = false;
-var USESENSOR = true;
 
 var firstCapture = true;
 
@@ -46,8 +51,9 @@ var dist_recent = [];
 var timerIdle = true;
 
 
-
+///////////
 // MAIN COMPUTER PROGRAM!
+///////////
 
 initialize();
 setInterval(evaluate, 30);
@@ -63,8 +69,7 @@ function initialize() {
 			}
 	}
 
-	serialport = new SerialPort(portName , { baudrate : 115200, parser: sp.parsers.readline("|") }, false);
-	openPort();
+	sensor.initialize( dist_v, context );
 
 	for ( var i=0; i<8; i++ ) { dist_v[i] = 0; }
 
@@ -90,28 +95,18 @@ function initialize() {
 
 	// Init pixel array
 	for ( var i=0; i<pixelLength + 3; i++ ) { pixels.push({ 'r':0, 'g':0, 'b':0 }); }
-
-
-
-//	setInterval( function() {
-//		dist_recent = dist_v.slice();
-//	}, 2000);
-
-
-
-	//dist_v[s]
 }
 
 
 function evaluate() {
-	if ( runState == "open") {
+	if ( context.runState == "open") {
 		evaluateEnvironment();
   	updateParticles();
   	draw();
 	} else {
 		if ( timerIdle ) {
 			setTimeout( function() {
-				openPort();
+				sensor.connect( dist_v, context );
 				timerIdle = true;
 			}, 5000);
 			timerIdle = false;
@@ -137,13 +132,13 @@ function evaluateEnvironment() {
 		addParticle( getRandParticle() );
 	}
 
-	if ( USESENSOR ) {
-		for ( var s=0; s < sensorCount; s++ ) {
-				if ( dist_v[s] > 0 && dist_v[s] < 150 ) {
-					particles.push( getProximateParticle( s, dist_v[s] ));
-				}
-		}
+	for ( var s=0; s < sensorCount; s++ ) {
+			if ( dist_v[s] > 0 && dist_v[s] < 150 ) {
+				particles.push( getProximateParticle( s, dist_v[s] ));
+			}
 	}
+
+	sensor.update();
 
 	if ( POSITIONTEST ) {
 		var out = "";
@@ -157,7 +152,7 @@ function evaluateEnvironment() {
 }
 
 function draw() {
-  if ( runState == "open" ) {
+  if ( context.runState == "open" ) {
 
 		// Initialize
 		initAllPixels( 20, 20, 40 );
@@ -173,7 +168,7 @@ function draw() {
 	    fc.writePixels();
 	//	} catch( err ) {
 	//		console.log('fc write err: ' + error);
-	//		runState = "fc write err";
+	//		context.runState = "fc write err";
 	//	}
 
   } else {
@@ -182,7 +177,11 @@ function draw() {
 }
 
 
-// update methods
+
+
+///////////
+// particle methods
+///////////
 
 function update_Discrete( i ) {
 	this.position += this.vel;
@@ -253,7 +252,7 @@ function method_BrightenSmooth() {
 			console.log('Brighten Smooth: ' + err);
 			console.log( this.position );
 			process.exit();
-	//		runState = "fc write err";
+	//		context.runState = "fc write err";
 		}
 }
 
@@ -307,6 +306,15 @@ function method_Sweep() {
 
 
 
+
+
+
+
+
+
+
+
+
 function setPixel( i, r, g, b ) {
 	pixels[i].red = r;
 	pixels[i].green = g;
@@ -326,7 +334,8 @@ function addParticle( p ) {
 }
 
 function getProximateParticle( s, dist ) {
-	var pos = Math.floor( ( s + 1 ) * ( environmentLength / sensorCount ) );
+	var pos = sensor.getPosition( s );
+	//Math.floor( ( s + 1 ) * ( environmentLength / sensorCount ) );
 	var life = 150 - dist;
 
 	return getParticle( 4, pos, 1,  method_BrightenSmooth, update_React, defaultScale, 85, 55, 15, life );
@@ -336,15 +345,15 @@ function getRandParticle() {
 	var r = Math.random();
 
 	if ( r < .10 ) {
-		return getParticle( 5, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 1 );
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 1 );
 //	} else if ( r < .15 ) {
 //		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15, 1 );
-	} else if ( r < .30 ) {
-		return getParticle( 3, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 50, 10, 20, 1 );
+//	} else if ( r < .30 ) {
+//		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95, 1 );
 	} else if ( r < .50 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 1 );
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 1 )
 	} else {
-		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 20, 1 );
+		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10, 1 );
 	}
 }
 
@@ -372,55 +381,150 @@ function getParticle( v, p, i, m, u, s, r, g, b, l ) {
 
 
 
-// Serial Access
+///////////
+// Sensor Code
+///////////
 
-function listPorts() {
-  serialport.list(function (err, ports) {
-    ports.forEach(function(port) {
-      console.log(port.comName);
-    });
-  });
-  return ports;
+
+function getPosition( p ) {
+	// 300 * 13 = 3900
+	// 3900 / 8 = 487.5
+
+//		487, 974, 1461, 1948, 2435, 2922, 3409, 3896
+
+	var positions = [
+		100, 974, 1461, 1948, 2435, 2922, 3409, 3896
+	];
+
+
+	if ( p >= 0 && p < positions.length ) {
+		return positions[ p ];
+	} else {
+		return 487;
+	}
 }
 
-function openPort() {
-	serialport.on('error', function(err){
-		console.log('serialport general error' + err);
-	});
 
-  serialport.open(function (error) {
-    if ( error ) {
-      console.log('open err: ' + error);
-//			runState = "conn open err";
-			runState = "open";
-    } else {
-      console.log('open');
-			runState = "open";
 
-      serialport.on('data', function(data) {
-    		var c = data.trim();
-				try{
+function ultrasonicSensors() {
+	var self = this;
 
-	    		dist_v = JSON.parse(c);
+	var sp = require('serialport');
+	var SerialPort = require('serialport').SerialPort;
+	var portName = "/dev/ttyArduino";
 
-//					if ( firstCapture ){
-//						dist_back = dist_v.slice();
-//						firstCapture = false;
-//					}
+	var serialPort = {};
 
-					if ( SENSORTEST ) {
-						var out = "";
-						for ( var s=0; s < sensorCount; s++ ) {
-							out += s + '=' + dist_v[s] + '  :  ';
-						}
-						console.log( out );
-					}
-				} catch( err ){
-					console.log('parse err ' + err);
-				}
+	self.initialize = function( dist_v, context ) {
+		serialport = new SerialPort(portName , { baudrate : 115200, parser: sp.parsers.readline("|") }, false);
+		self.connect( dist_v, context );
+	}
+
+	self.listPorts = function() {
+		serialport.list(function (err, ports) {
+	    ports.forEach(function(port) {
+	      console.log(port.comName);
 	    });
+	  });
+	  return ports;
+	}
 
-    }
-  });
+	self.connect = function( dist_v, context ) {
+		serialport.on('error', function(err){
+			console.log('serialport general error' + err);
+		});
 
-}
+	  serialport.open(function (error) {
+	    if ( error ) {
+	      console.log('open err: ' + error);
+	//			context.runState = "conn open err";
+				context.runState = "open";
+	    } else {
+	      console.log('open');
+				context.runState = "open";
+
+	      serialport.on('data', function(data) {
+	    		var c = data.trim();
+					try{
+
+		    		dist_v = JSON.parse(c);
+
+	//					if ( firstCapture ){
+	//						dist_back = dist_v.slice();
+	//						firstCapture = false;
+	//					}
+
+						if ( SENSORTEST ) {
+							var out = "";
+							for ( var s=0; s < sensorCount; s++ ) {
+								out += s + '=' + dist_v[s] + '  :  ';
+							}
+							console.log( out );
+						}
+					} catch( err ){
+						console.log('parse err ' + err);
+					}
+		    });
+	    }
+	  });
+	}
+
+	self.update = function() {}
+
+	self.getPosition = getPosition;
+
+};
+
+
+function testSensors() {
+	var self = this;
+
+	self.initialize = function( dist_v, context ) {
+		dist_v = [ 0,0,0,0,0,0,0,0 ];
+	}
+
+	self.connect = function( dist_v, context ) {
+		/*
+		var keypress = require('keypress');
+
+		console.log('assigning keyhandler');
+
+		// listen for the "keypress" event
+		process.stdin.on('keypress', function (ch, key) {
+		  console.log('got "keypress"', key);
+		  //if (key.ctrl && key.name == 'c') {
+		  //  process.stdin.pause();
+		  //}
+			if ( key.name == '1' ) {
+				dist_v[0] = 60;
+			}
+		});
+		//process.stdin.resume();
+		*/
+
+		var t = 6000;
+		var tfunc = function(){
+			t = ( Math.random() * 4 ) * 1000;
+			t += 2000;
+			dist_v[0] = 20;
+		}
+
+		setTimeout( tfunc, t);
+
+
+		setTimeout( function() {
+			dist_v[0] = 20;
+		}, 10 );
+
+
+		context.runState = "open";
+
+	}
+
+	self.update = function() {
+		dist_v = [ 20,0,0,0,0,0,20,0 ];
+	}
+
+	self.getPosition = getPosition;
+
+};
