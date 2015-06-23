@@ -1,6 +1,10 @@
 var ps = require('ps-node');
 var spawn = require('child_process').spawn;
 
+var fs = require('fs'),
+  out = fs.openSync('./out.log', 'a'),
+  err = fs.openSync('./out.log', 'a');
+
 var LOGGING = false;
 
 var consoleLog = function( message ) {
@@ -27,7 +31,6 @@ var monitorProcess = function() {
           if ( LOGGING ) {
             console.log( 'PID: %s, COMMAND: %s, ARGUMENTS: %s', process.pid, process.command, process.arguments );
           }
-
           var lightProcess = /.*lightrules\.js$/
 
           if ( lightProcess.test( process.arguments ) ) {
@@ -48,23 +51,21 @@ var monitorProcess = function() {
 
       if ( count == 0 ) {
         // restart process
-
-        var proc = spawn('node', ['lightrules.js']);
-        proc.stderr.on('data', function (data) {
-          consoleLog('node lightrules.js stderr: ' + data);
-        });
-
-        proc.on('exit', function (code) {
-          if (code !== 0) {
-            consoleLog('node lightrules.js process exited with code ' + code);
-          }
-        });
-
+        createProcess();
         consoleLog( 'restart' );
       } else {
-        consoleLog( 'lighttest.js running' );
+        consoleLog( 'lightrules.js running' );
       }
     });
 };
+
+var createProcess = function(){
+  var proc = spawn('node', ['lightrules.js'], {
+    //detached: true,
+    stdio: [ 'ignore', out, err ]
+  });
+
+  //proc.unref();
+}
 
 setInterval( monitorProcess, 30000 );
