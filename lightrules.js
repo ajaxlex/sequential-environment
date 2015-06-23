@@ -5,7 +5,7 @@ var OPC = new require('./opc')
 var fc = new OPC('localhost', 7890);
 
 var SENSORTEST = false;
-var POSITIONTEST = true;
+var POSITIONTEST = false;
 var USESENSOR = true;
 
 var sensor = {};
