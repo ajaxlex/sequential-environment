@@ -1,3 +1,12 @@
 #!/bin/bash
-kill $(ps aux | grep 'lightrules.js' | awk '{print $2}')
-/opt/node/bin/node /home/pi/sequential-environment/lightrules.js
+
+lpid = $(ps aux | grep 'lightrules.js' | awk '{print $2}');
+fcpid = $(ps aux | grep 'fcserver-rpi' | awk '{print $2}');
+wcpid = $(ps aux | grep 'fswebcam' | awk '{print $2}');
+
+sudo kill lpid
+sudo kill fcpid
+sudo kill wcpid
+
+/home/pi/sequential-environment/fcserver-rpi /home/pi/sequential-environment/fcserver.json >> /home/pi/sequential-environment/fcserver.log &
+/home/pi/fswebcam/fswebcam test | /opt/node/bin/node /home/pi/sequential-environment/lightrules.js >> /home/pi/sequential-environment/lightrules.log &
