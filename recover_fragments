@@ -1,0 +1,9 @@
+// fswebcam limit
+
+		for ( t=0; t < 71; t++ ){ buffer[t] = 0; }
+
+		for ( h=0; h < ( reducedHeight - config->lowerscan ); h++ ){
+			for ( w=0; w < reducedWidth; w++ ){
+
+
+
