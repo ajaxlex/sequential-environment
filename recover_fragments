@@ -6,4 +6,9 @@
 			for ( w=0; w < reducedWidth; w++ ){
 
 
+// necc line
+
+ fswebcam -D1 --no-banner --greyscale --png --no-info ~/ctest/test.png
+ 
+ //
 
