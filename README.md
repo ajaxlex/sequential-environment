@@ -31,5 +31,5 @@ To run the included process monitor ( for automatic restarts ), navigate inside 
 * sudo npm install ps-node
 * sudo npm install child_process
 
-modify /etc/rc.local to call the process monitor by adding the following to the end:
+finally, modify /etc/rc.local to call the process monitor by adding the following to the end:
 sudo /usr/bin/node /home/pi/sequential-environment/process-monitor.js
