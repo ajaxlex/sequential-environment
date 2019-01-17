@@ -14,7 +14,7 @@ now, your home directory should have (something like) the following children:
 and
 /home/pi/fswebcam
 
-fswebcam should work, but if it must be built, just satisfy the library dependencies per the fswebcam project, and then
+The code for fswebcam is modified for this project.  the fswebcam executable should work, but if it must be built, just satisfy the library dependencies per the fswebcam project, and then
 
 * cd /home/pi/fswebcam
 * sudo configure
