@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-var OPC = new require('./opc')
-
+var OPC = new require('./opc');
 var fc = new OPC('localhost', 7890);
+fs = require('fs');
 
 var SENSORTEST = false;
 var POSITIONTEST = false;
@@ -11,7 +11,8 @@ var USESENSOR = true;
 var sensor = {};
 
 if ( USESENSOR ) {
-	sensor = new ultrasonicSensors();
+	//sensor = new ultrasonicSensors();
+	sensor = new visualSensors();
 } else {
 	sensor = new testSensors();
 }
@@ -29,10 +30,10 @@ var SWEEP = 300;
 
 var firstCapture = true;
 
-var sensorCount = 8;
+var sensorCount = 0;
 
 var pixelLength = 300;
-var particleCount = 400;
+var particleCount = 700;
 
 var defaultScale = 13;
 
@@ -60,6 +61,10 @@ setInterval(evaluate, 30);
 
 function initialize() {
 
+	if ( process.pid ) {
+		fs.writeFile( 'light_pid.txt', process.pid );
+	}
+
 	if ( process.argv.length > 2 ) {
 			for ( var i=2; i<process.argv.length; i++ ) {
 				var current = process.argv[i];
@@ -69,9 +74,9 @@ function initialize() {
 			}
 	}
 
-	sensor.initialize( dist_v, context );
+	sensorCount = sensor.initialize( dist_v, context );
 
-	for ( var i=0; i<8; i++ ) { dist_v[i] = 0; }
+	for ( var i=0; i < sensorCount; i++ ) { dist_v[i] = 0; }
 
 	// Init coord lookup
 	var coordRatio = ( pixelLength  / environmentLength );
@@ -138,7 +143,7 @@ function evaluateEnvironment() {
 			}
 	}
 
-	sensor.update();
+	sensor.update( dist_v );
 
 	if ( POSITIONTEST ) {
 		var out = "";
@@ -344,14 +349,16 @@ function getProximateParticle( s, dist ) {
 function getRandParticle() {
 	var r = Math.random();
 
-	if ( r < .10 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 1 );
+	if ( r < .0125 ) {
+		return getParticle( 7, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 128, 10, 128, 1 );
+	} else if ( r < .10 ) {
+		return getParticle( 5, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 10, 10, 85, 1 );
 //	} else if ( r < .15 ) {
 //		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 60, 10, 15, 1 );
 //	} else if ( r < .30 ) {
 //		return getParticle( 3, 0, 1, method_Sweep, update_Smooth, defaultScale, 30, 30, 95, 1 );
 	} else if ( r < .50 ) {
-		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 45, 25, 100, 1 )
+		return getParticle( 4, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 30, 25, 100, 1 )
 	} else {
 		return getParticle( 2, 0, 1, method_BrightenSmooth, update_Smooth, defaultScale, 5, 5, 10, 1 );
 	}
@@ -382,20 +389,98 @@ function getParticle( v, p, i, m, u, s, r, g, b, l ) {
 
 
 ///////////
-// Sensor Code
+// Visual Sensor Code
+///////////
+
+function visualSensors(){
+	var self = this;
+	self.positions = [];
+	self.delimiter = String.fromCharCode(254);
+	self.readable = false;
+
+
+	self.initialize = function( dist_v, context ) {
+
+		process.stdin.setEncoding('utf8');
+	  process.stdin.on('readable', function() {
+	    self.readable = true;
+	  });
+	  process.stdin.on('end', function() {
+	    self.readable = false;
+	    process.stdout.write('end');
+	    console.log('end');
+	  });
+
+		var scaling = environmentLength / 35;
+
+		for ( var p=0; p < 35; p++ ){
+			self.positions.push( Math.floor(p * scaling) )
+		}
+
+		return 35;
+	}
+
+	self.connect = function( dist_v, context ) {
+				context.runState = "open"
+	}
+
+	self.update = function( dist_v ) {
+		if ( self.readable ) {
+	    var chunk = process.stdin.read();
+	    if (chunk !== null) {
+	      var arr = [];
+
+	      var sub = chunk.substring(0,71);
+	      var segments = sub.split( self.delimiter );
+
+	      var rebuilt = segments[0];
+
+	      for ( var t=0; t < 35; t++ ){
+	          dist_v[35-t] = rebuilt[t*2].charCodeAt();
+	      }
+
+				//console.log('\033[0;0H');
+	      self.writeGrid( dist_v );
+	    }
+	  }
+	}
+
+	self.getPosition = function( p ) {
+		if ( p < 0 || p >= self.positions.length ) {
+			return 0;
+		}
+		return self.positions[p];
+	}
+
+	self.writeGrid = function( arr ){
+	  for ( var y = 0; y < 40; y++ ){
+	    out = "";
+	    for ( var x = 0; x < 35; x++ ){
+	      if ( arr[x] > 0 && arr[x] == y ){
+	        out += "#";
+	      } else {
+	        out += ".";
+	      }
+	    }
+	    console.log(out);
+	  }
+	}
+
+}
+
+
+
+///////////
+// Ultrasonic Sensor Code
 ///////////
 
 
-function getPosition( p ) {
-	// 300 * 13 = 3900
-	// 3900 / 8 = 487.5
 
-//		487, 974, 1461, 1948, 2435, 2922, 3409, 3896
+function getPosition( p ) {
 
 	var positions = [
 		100, 974, 1461, 1948, 2435, 2922, 3409, 3896
 	];
-
 
 	if ( p >= 0 && p < positions.length ) {
 		return positions[ p ];
@@ -403,7 +488,6 @@ function getPosition( p ) {
 		return 487;
 	}
 }
-
 
 
 function ultrasonicSensors() {
@@ -418,6 +502,7 @@ function ultrasonicSensors() {
 	self.initialize = function( dist_v, context ) {
 		serialport = new SerialPort(portName , { baudrate : 115200, parser: sp.parsers.readline("|") }, false);
 		self.connect( dist_v, context );
+		return 8;
 	}
 
 	self.listPorts = function() {
@@ -469,7 +554,7 @@ function ultrasonicSensors() {
 	  });
 	}
 
-	self.update = function() {}
+	self.update = function( dist_v ) {}
 
 	self.getPosition = getPosition;
 
@@ -481,6 +566,7 @@ function testSensors() {
 
 	self.initialize = function( dist_v, context ) {
 		dist_v = [ 0,0,0,0,0,0,0,0 ];
+		return 8;
 	}
 
 	self.connect = function( dist_v, context ) {
@@ -521,7 +607,7 @@ function testSensors() {
 
 	}
 
-	self.update = function() {
+	self.update = function( dist_v ) {
 		dist_v = [ 20,0,0,0,0,0,20,0 ];
 	}
 

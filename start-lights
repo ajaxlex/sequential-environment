@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo /home/pi/sequential-environment/fcserver-rpi /home/pi/sequential-environment/fcserver.json >> '/home/pi/sequential-environment/fcserver.log' &
+/home/pi/fswebcam/fswebcam -B11 | /usr/bin/node /home/pi/sequential-environment/lightrules.js >> '/home/pi/sequential-environment/lightrules.log'

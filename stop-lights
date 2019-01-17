@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo kill $(ps aux | grep -v 'grep' | grep 'lightrules.js' | awk '{print $2}');
+sudo kill $(ps aux | grep -v 'grep' | grep 'fcserver-rpi' | awk '{print $2}');
+sudo kill $(ps aux | grep -v 'grep' | grep 'fswebcam' | awk '{print $2}');
