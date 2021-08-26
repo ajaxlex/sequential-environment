@@ -16,6 +16,7 @@ The map relies on the following steps to provide results
 2. A [Github Action](https://github.com/CodeForPittsburgh/food-access-map-data/actions) is used to kick off a virtual machine containing the [various scripts](https://github.com/CodeForPittsburgh/food-access-map-data/tree/master/data_prep_scripts) which then clean, transform, deduplicate, and collate the multiple  data sources into a single file for use by the map.
 3. A separate [Koop](https://koopjs.github.io/) application hosted on a Heroku server is notified when the github action is complete.  It then fetches the published file and exposes it in a familiar fashion to the ESRI frontend.
 4. The [ESRI frontend](https://www.arcgis.com/apps/instant/nearby/index.html?appid=6315c774b49540689eac60bce9e0c8bd) ( the map everyone sees ) is an application that is hosted on ESRI's servers.  It is based on an app template (called [Nearby](https://www.arcgis.com/home/item.html?id=9d3f21cfd9b14589968f7e5be91b52c8)) that ESRI provides, and it is configured to consume the data provided by the Koop application in step 3.
+
 ![System Diagram](/workflow.png)
 
 # How You Can Help
